@@ -7,25 +7,38 @@ import {
   bookAppointment,
 } from "../utilities/backend";
 import React from "react";
-import ReactMarkdown from "react-markdown";
+import SendButton from "./SendButton";
 
 function ChatArea({ chatId, chats, setChats }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [appointmentRequested, setAppointmentRequested] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const currentChatId = useRef(chatId);
+  const textFieldRef = useRef(null);
+
+  useEffect(() => {
+    if (!isLoading) {
+      const timer = setTimeout(() => {
+        textFieldRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleAppoinmentBooking = async () => {
-    console.log("Starting to book appointment");
-    const appoinmentData = await bookAppointment();
-    console.log(appoinmentData);
+    setIsLoading(true);
     setAppointmentRequested(false);
-    setMessages([...messages, { role: "assistant", content: appoinmentData.message }]);
+
+    const appoinmentData = await bookAppointment();
+
+    setIsLoading(false);
+    setMessages([...messages, { role: "UI", content: appoinmentData.message }]);
   };
 
   useEffect(() => {
@@ -33,14 +46,12 @@ function ChatArea({ chatId, chats, setChats }) {
   }, [messages]);
 
   useEffect(() => {
-    console.log("called");
     if (chatId) {
       currentChatId.current = chatId;
       getChatMessages(chatId).then((messages) => {
         setMessages(messages);
       });
     } else {
-      console.log("herer");
       setMessages([]);
       currentChatId.current = null;
     }
@@ -49,7 +60,6 @@ function ChatArea({ chatId, chats, setChats }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (newMessage.trim()) {
-        setAppointmentRequested(false);
       const updatedMessages = [
         ...messages,
         {
@@ -57,27 +67,34 @@ function ChatArea({ chatId, chats, setChats }) {
           content: newMessage.trim(),
         },
       ];
+
+      setAppointmentRequested(false);
+      setIsLoading(true);
       setMessages(updatedMessages);
       setNewMessage("");
+
+      let response;
       if (!currentChatId.current) {
         const newChatId = Math.floor(100000 + Math.random() * 900000);
         const newChat = await createChat(newChatId, updatedMessages);
         currentChatId.current = newChatId;
         setChats([...chats, newChat]);
-        submitUserMessage(
+        response = await submitUserMessage(
           currentChatId.current,
           updatedMessages,
-          setMessages,
-          setAppointmentRequested
+          setMessages
         );
       } else {
-        submitUserMessage(
+        response = await submitUserMessage(
           currentChatId.current,
           updatedMessages,
-          setMessages,
-          setAppointmentRequested
+          setMessages
         );
       }
+      if (response.includes("consultation")) {
+        setAppointmentRequested(true);
+      }
+      setIsLoading(false);
     }
   };
 
@@ -144,8 +161,8 @@ function ChatArea({ chatId, chats, setChats }) {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            mx: '5%',
-            mb: '10px',
+            mx: "5%",
+            mb: "10px",
             border: "2px solid",
             borderColor: "#ffcdd2",
             cursor: "pointer",
@@ -154,7 +171,6 @@ function ChatArea({ chatId, chats, setChats }) {
             },
           }}
           onClick={() => {
-            //setAppointmentRequested(false);
             handleAppoinmentBooking();
           }}
         >
@@ -168,7 +184,8 @@ function ChatArea({ chatId, chats, setChats }) {
               gap: 1,
             }}
           >
-            It seems like you want to book an appointment. Click here to proceed.
+            It seems like you want to book an appointment. Click here to
+            proceed.
           </Typography>
         </Box>
       )}
@@ -184,48 +201,90 @@ function ChatArea({ chatId, chats, setChats }) {
         }}
       >
         <TextField
+          inputRef={textFieldRef}
           fullWidth
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type your message..."
           variant="outlined"
           size="small"
+          disabled={isLoading}
+          autoFocus
+          sx={{
+            "& .MuiInputBase-root": {
+              height: "50px",
+            },
+          }}
         />
-        <Button type="submit" variant="contained" disabled={!newMessage.trim()}>
-          Send
-        </Button>
+        <SendButton isLoading={isLoading} disabled={!newMessage.trim()} />
       </Box>
     </Box>
   );
 }
 
 const ChatMessage = React.memo(({ message, index }) => {
-  return (
-    <Paper
-      key={index}
-      sx={{
+  const messageStyles = {
+    UI: {
+      paper: {
         p: 1.5,
         maxWidth: "70%",
-        bgcolor: message.role === "user" ? "primary.light" : "background.paper",
-        alignSelf: message.role === "user" ? "flex-end" : "flex-start",
-        ml: message.role === "user" ? "auto" : "0",
-        mr: message.role === "user" ? "0" : "auto",
+        bgcolor: "grey.100",
+        alignSelf: "center",
+        mx: "auto",
+        borderRadius: 3,
+        boxShadow: 1,
+        "&:hover": { boxShadow: 2 },
+      },
+      typography: {
+        color: "text.secondary",
+        fontWeight: 500,
+        whiteSpace: "pre-wrap",
+        textAlign: "center",
+      },
+    },
+    user: {
+      paper: {
+        p: 1.5,
+        maxWidth: "70%",
+        bgcolor: "primary.light",
+        alignSelf: "flex-end",
+        ml: "auto",
+        mr: 0,
         borderRadius: 3,
         boxShadow: 2,
-        "&:hover": {
-          boxShadow: 3,
-        },
-      }}
-    >
-      <Typography
-        sx={{
-          color: message.role === "user" ? "common.white" : "text.primary",
-          fontWeight: 400,
-          whiteSpace: "pre-wrap",
-        }}
-      >
-        {message.content}
-      </Typography>
+        "&:hover": { boxShadow: 3 },
+      },
+      typography: {
+        color: "common.white",
+        fontWeight: 400,
+        whiteSpace: "pre-wrap",
+      },
+    },
+    assistant: {
+      paper: {
+        p: 1.5,
+        maxWidth: "70%",
+        bgcolor: "background.paper",
+        alignSelf: "flex-start",
+        ml: 0,
+        mr: "auto",
+        borderRadius: 3,
+        boxShadow: 2,
+        "&:hover": { boxShadow: 3 },
+      },
+      typography: {
+        color: "text.primary",
+        fontWeight: 400,
+        whiteSpace: "pre-wrap",
+      },
+    },
+  };
+
+  const style = messageStyles[message.role];
+
+  return (
+    <Paper key={index} sx={style.paper}>
+      <Typography sx={style.typography}>{message.content}</Typography>
     </Paper>
   );
 });

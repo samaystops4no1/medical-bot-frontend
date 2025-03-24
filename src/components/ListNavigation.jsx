@@ -55,7 +55,7 @@ function ListNavigation({ listArray, emptyMessage, setSelectedItem }) {
         <Divider />
 
         {listArray.length ? (
-          <List sx={{ width: "100%", flex: 1 }}>
+          <List sx={{ width: "100%", flex: 1, overflow: "auto" }}>
             {listArray.map((item) => (
               <>
                 <ListItem

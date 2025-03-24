@@ -54,7 +54,7 @@ export async function createChat(chatId,  messages) {
     return data.newChatObject;
 }
 
-export async function submitUserMessage(chatId, messages, setMessages, setAppoinmentRequested) {
+export async function submitUserMessage(chatId, messages, setMessages, ) {
     const response = await fetch(`http://localhost:3000/api/messages/${chatId}`, {
         method: 'POST',
         headers: {
@@ -64,7 +64,7 @@ export async function submitUserMessage(chatId, messages, setMessages, setAppoin
         mode: 'cors',
         credentials: 'include',
         body: JSON.stringify({
-            message: messages
+            message: filterMessages(messages)
         })
     });
 
@@ -94,9 +94,7 @@ export async function submitUserMessage(chatId, messages, setMessages, setAppoin
             }
         });
     }
-    if (result.includes("consultation")) {
-        setAppoinmentRequested(true);
-    }
+    return result;
 }
 
 export async function bookAppointment() {
@@ -109,4 +107,9 @@ export async function bookAppointment() {
     });
     const data = await response.json();
     return data;
+}
+
+function filterMessages(messages) {
+    const filteredMessages = messages.filter(message => message.role !== 'UI');
+    return filteredMessages;
 }
