@@ -22,26 +22,28 @@ A modern React-based medical chat application that allows users to interact with
 
 ## Getting Started
 
-1. Clone the repository:
+1. Make sure you have started the backend server by following the instructions in the [medical-bot-backend](https://github.com/samaystops4no1/medical-bot-backend) repository.
+
+2. Clone the repository:
 
 ```bash
 git clone <repository-url>
 cd clarion-project
 ```
 
-2. Install dependencies:
+3. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Start the development server:
+4. Start the development server:
 
 ```bash
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Open your browser and navigate to `http://localhost:5173`
 
 ## Project Structure
 
@@ -70,6 +72,3 @@ clarion-project/
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build locally
 - `npm run lint` - Run ESLint
-
-
-
