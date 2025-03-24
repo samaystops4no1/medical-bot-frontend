@@ -12,7 +12,10 @@ function AppointmentList({}) {
 
   return (
     <Box>
-      <ListNavigation listArray={appointments} />
+      <ListNavigation 
+        listArray={appointments}
+        mode="appointment" 
+      />
     </Box>
   );
 }

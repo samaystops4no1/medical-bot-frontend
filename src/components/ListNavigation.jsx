@@ -14,9 +14,10 @@ import {
  * @param {object[]} listArray - Array of objects containing title, lastModifiedTime, and setSelectedItem handler
  * @param {string} emptyMessage - Message to display when the list is empty
  * @param {function} setSelectedItem - Function to set the selected item
+ * @param {'chat'|'appointment'} mode - Mode of the list (chat or appointment)
  * @returns
  */
-function ListNavigation({ listArray, emptyMessage, setSelectedItem }) {
+function ListNavigation({ listArray, emptyMessage, setSelectedItem, mode }) {
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleString("en-US", {
       year: "numeric",
@@ -42,16 +43,20 @@ function ListNavigation({ listArray, emptyMessage, setSelectedItem }) {
           flexDirection: "column",
         }}
       >
-        <Button
-          variant="contained"
-          sx={{ m: 2 }}
-          onClick={() => {
-            setSelectedItem(null);
-          }}
+        {mode === "chat" && (
+            <>
+          <Button
+            variant="contained"
+            sx={{ m: 2 }}
+            onClick={() => {
+              setSelectedItem(null);
+            }}
         >
           New chat
         </Button>
         <Divider />
+        </>
+        )}
 
         {listArray.length ? (
           <List sx={{ width: "100%", flex: 1, overflow: "auto", pt: 0 }}>

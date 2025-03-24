@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import { Box, Typography, Tooltip, Divider } from "@mui/material";
+import { Box, Tooltip, Divider } from "@mui/material";
 import ChatIcon from "@mui/icons-material/Chat";
 import ChatList from "./components/ChatList";
 import GroupsIcon from "@mui/icons-material/Groups";
@@ -74,9 +74,7 @@ function App() {
         {/* Main Content */}
         <Box sx={{ flex: 1 }}>
           {currentView === "home" && <ChatList mode="chat" />}
-          {currentView === "appointments" && (
-            <AppointmentList mode="appointment" />
-          )}
+          {currentView === "appointments" && <AppointmentList mode="appointment" /> }
         </Box>
       </Box>
     </ThemeProvider>

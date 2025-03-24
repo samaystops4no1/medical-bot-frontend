@@ -1,4 +1,4 @@
-import { Box, TextField, Button, Paper, Typography } from "@mui/material";
+import { Box, TextField, Paper, Typography } from "@mui/material";
 import { useState, useEffect, useRef } from "react";
 import {
   getChatMessages,

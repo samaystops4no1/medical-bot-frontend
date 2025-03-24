@@ -27,7 +27,7 @@ export function getAppointments() {
         {
             id: 1,
             lastModifiedTime: 1711108800000, // 2025-03-22T12:00:00Z
-            title: 'Appointment with Dr. John Doe',
+            title: 'Work in progress',
             createdTime: 1711108800000, // 2025-03-22T12:00:00Z
         }
     ];
