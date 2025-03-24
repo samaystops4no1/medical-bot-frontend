@@ -55,9 +55,10 @@ export async function createChat(chatId,  messages) {
 }
 
 export async function submitUserMessage(chatId, messages, setMessages, ) {
-    const response = await fetch(`http://localhost:3000/api/messages/${chatId}`, {
-        method: 'POST',
-        headers: {
+    try {
+        const response = await fetch(`http://localhost:3000/api/messages/${chatId}`, {
+            method: 'POST',
+            headers: {
             'Content-Type': 'application/json',
             'Accept': 'text/event-stream'
         },
@@ -67,6 +68,10 @@ export async function submitUserMessage(chatId, messages, setMessages, ) {
             message: filterMessages(messages)
         })
     });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
@@ -94,19 +99,34 @@ export async function submitUserMessage(chatId, messages, setMessages, ) {
             }
         });
     }
-    return result;
+    return { result: result};
+    } catch (error) {
+        console.log('Failed to submit user message:', error.message);
+        return { error: error.message };
+    }
 }
 
 export async function bookAppointment() {
-    const response = await fetch(`http://localhost:3000/api/book-appointment`, {
-        method: 'POST',
-        headers: {
+    try {
+        const response = await fetch(`http://localhost:3000/api/book-appointment`, {
+            method: 'POST',
+            headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         },
     });
+
     const data = await response.json();
-    return data;
+
+    if (data.error) {
+        throw new Error(`Error booking appointment: ${response.status}`);
+    }
+
+    return { data };
+    } catch (error) {
+        console.error('Failed to book appointment:', error.message);
+        return { error: error.message };
+    }
 }
 
 function filterMessages(messages) {

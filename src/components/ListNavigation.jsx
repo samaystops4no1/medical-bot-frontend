@@ -46,7 +46,6 @@ function ListNavigation({ listArray, emptyMessage, setSelectedItem }) {
           variant="contained"
           sx={{ m: 2 }}
           onClick={() => {
-            console.log("THis clla");
             setSelectedItem(null);
           }}
         >
@@ -55,7 +54,7 @@ function ListNavigation({ listArray, emptyMessage, setSelectedItem }) {
         <Divider />
 
         {listArray.length ? (
-          <List sx={{ width: "100%", flex: 1, overflow: "auto" }}>
+          <List sx={{ width: "100%", flex: 1, overflow: "auto", pt: 0 }}>
             {listArray.map((item) => (
               <>
                 <ListItem
@@ -73,7 +72,8 @@ function ListNavigation({ listArray, emptyMessage, setSelectedItem }) {
                 >
                   <ListItemText
                     sx={{
-                      pl: 1,
+                      my: 0,
+                      ml: 1
                     }}
                     primary={
                       <Typography variant="subtitle1" noWrap>

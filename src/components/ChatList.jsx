@@ -24,7 +24,7 @@ function ChatList({}) {
         emptyMessage="No existing chats found"
         setSelectedItem={setSelectedChatId}
       />
-      <ChatArea chatId={selectedChatId} chats={chats} setChats={setChats} />
+      <ChatArea chatId={selectedChatId} chats={chats} setChats={setChats} setSelectedChatId={setSelectedChatId} />
     </Box>
   );
 }

@@ -9,11 +9,12 @@ import {
 import React from "react";
 import SendButton from "./SendButton";
 
-function ChatArea({ chatId, chats, setChats }) {
+function ChatArea({ chatId, chats, setChats, setSelectedChatId }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [appointmentRequested, setAppointmentRequested] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
   const currentChatId = useRef(chatId);
   const textFieldRef = useRef(null);
@@ -37,8 +38,15 @@ function ChatArea({ chatId, chats, setChats }) {
 
     const appoinmentData = await bookAppointment();
 
+    if (appoinmentData?.error) {
+        setError({ message: 'Failed to book appointment. Please try again later.' });
+    }
+
+    if (appoinmentData?.data) {
+        setMessages([...messages, { role: "UI", content: appoinmentData.data.message }]);
+    }
+
     setIsLoading(false);
-    setMessages([...messages, { role: "UI", content: appoinmentData.message }]);
   };
 
   useEffect(() => {
@@ -72,26 +80,29 @@ function ChatArea({ chatId, chats, setChats }) {
       setIsLoading(true);
       setMessages(updatedMessages);
       setNewMessage("");
+      setError(null);
 
-      let response;
       if (!currentChatId.current) {
         const newChatId = Math.floor(100000 + Math.random() * 900000);
+
+        //creating a new chat
         const newChat = await createChat(newChatId, updatedMessages);
         currentChatId.current = newChatId;
         setChats([...chats, newChat]);
-        response = await submitUserMessage(
-          currentChatId.current,
-          updatedMessages,
-          setMessages
-        );
-      } else {
-        response = await submitUserMessage(
-          currentChatId.current,
-          updatedMessages,
-          setMessages
-        );
+        setSelectedChatId(newChatId);
       }
-      if (response.includes("consultation")) {
+
+      const response = await submitUserMessage(
+        currentChatId.current,
+        updatedMessages,
+        setMessages,
+      );
+
+      if (response?.error) {
+        setError({ message: "Failed to generate a response for your query. Please try again later. If the issue persists, please contact support."});
+      }
+
+      if (response?.result?.includes("consultation")) {
         setAppointmentRequested(true);
       }
       setIsLoading(false);
@@ -154,40 +165,10 @@ function ChatArea({ chatId, chats, setChats }) {
 
       {/* Input Area */}
       {appointmentRequested && (
-        <Box
-          sx={{
-            p: 0.5,
-            borderRadius: "10px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            mx: "5%",
-            mb: "10px",
-            border: "2px solid",
-            borderColor: "#ffcdd2",
-            cursor: "pointer",
-            "&:hover": {
-              bgcolor: "#e3f2fd",
-            },
-          }}
-          onClick={() => {
-            handleAppoinmentBooking();
-          }}
-        >
-          <Typography
-            variant="subtitle1"
-            color="primary"
-            sx={{
-              fontWeight: 500,
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            It seems like you want to book an appointment. Click here to
-            proceed.
-          </Typography>
-        </Box>
+        <SystemMessage intensity="info" message="It seems like you want to book an appointment. Click here to proceed." clickHandler={handleAppoinmentBooking} />
+      )}
+      {error && (
+        <SystemMessage intensity="error" message={error.message} />
       )}
       <Box
         component="form"
@@ -288,5 +269,43 @@ const ChatMessage = React.memo(({ message, index }) => {
     </Paper>
   );
 });
+
+const SystemMessage = ({ intensity, message, clickHandler }) => {
+    return <Box
+    sx={{
+      p: 0.5,
+      borderRadius: "10px",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      mx: "5%",
+      mb: "10px",
+      border: "2px solid",
+      borderColor: intensity === "error" ? "#ffcdd2" : "#e3f2fd",
+      cursor: clickHandler ? "pointer" : "default",
+      "&:hover": {
+        bgcolor: "#e3f2fd",
+      },
+    }}
+    onClick={() => {
+        if (clickHandler) {
+            clickHandler();
+        }
+    }}
+  >
+    <Typography
+      variant="subtitle1"
+      color={intensity === "error" ? "error" : "primary"}
+      sx={{
+        fontWeight: 500,
+        display: "flex",
+        alignItems: "center",
+        gap: 1,
+      }}
+    >
+      {message}
+    </Typography>
+  </Box>
+}
 
 export default ChatArea;
